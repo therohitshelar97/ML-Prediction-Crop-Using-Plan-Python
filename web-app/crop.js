@@ -1,0 +1,39 @@
+const API_KEY = "N13012TMq2SyWs0Zh-czXIYgRhU-7rUz6ytfy6PEf7DP";
+
+// Step 1: Get the Bearer Token
+fetch('https://iam.cloud.ibm.com/identity/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+        'apikey': API_KEY,
+        'grant_type': 'urn:ibm:params:oauth:grant-type:apikey'
+    })
+})
+    .then(response => response.json())
+    .then(data => {
+        const mltoken = data.access_token;
+
+        // Step 2: Make the Prediction Request
+        const payload = {
+            input_data: [{
+                fields: ["N", "P", "K", "temperature", "humidity", "ph", "rainfall"],
+                values: [[90, 42, 43, 20.87974, 82.00274, 6.502985, 202.9355]]
+            }]
+        };
+
+        return fetch('https://au-syd.ml.cloud.ibm.com/ml/v4/deployments/a69a10e1-fdc2-4449-86ae-7eba4fa86dd8/predictions?version=2021-05-01', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + mltoken
+            },
+            body: JSON.stringify(payload)
+        });
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log("Prediction Result:", data);
+    })
+    .catch(error => {
+        console.error("Error:", error);
+    });
